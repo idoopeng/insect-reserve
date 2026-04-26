@@ -21,13 +21,37 @@ import { ref } from 'vue'
 
 const college = ref('')
 const name = ref('')
+const API_URL = "https://lively-field-cc71.614184764.workers.dev"
 
-const submitReserve = () => {
+const submitReserve = async () => {
   if (!college.value || !name.value) {
     alert('学院和姓名不能为空！')
     return
   }
-  alert('预约成功！欢迎参观昆虫馆')
+
+  try {
+    const res = await fetch(API_URL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        college: college.value,
+        name: name.value
+      })
+    })
+
+    const data = await res.json()
+    if (data.success) {
+      alert('预约成功！欢迎参观昆虫馆')
+      college.value = ''
+      name.value = ''
+    } else {
+      alert('提交失败：' + data.error)
+    }
+  } catch (err) {
+    alert('网络错误，请稍后再试')
+  }
 }
 </script>
 
