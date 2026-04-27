@@ -1,35 +1,48 @@
-export async function onRequestPost({ request, env }) {
-  // 处理跨域预检
+export const config = {
+  runtime: "experimental"
+};
+
+export async function onRequest({ request, env }) {
+  // 全局跨域头，所有请求、所有浏览器、微信内置浏览器全兼容
+  const corsHeaders = {
+    "Access-Control-Allow-Origin": "*",
+    "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+    "Access-Control-Allow-Headers": "*",
+    "Access-Control-Max-Age": "86400"
+  };
+
+  // 单独处理OPTIONS预检
   if (request.method === "OPTIONS") {
-    return new Response(null, {
-      headers: {
-        "Access-Control-Allow-Origin": "*",
-        "Access-Control-Allow-Methods": "POST, OPTIONS",
-        "Access-Control-Allow-Headers": "Content-Type"
-      }
-    });
+    return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    // 接收前端数据
+    // 只处理POST提交
+    if (request.method !== "POST") {
+      return new Response("Method Not Allowed", { status: 405, headers: corsHeaders });
+    }
+
     const { college, name } = await request.json();
 
-    // 写入数据库
+    // 数据库写入
     await env.DB.prepare(`
       INSERT INTO reservations (college, name) VALUES (?, ?)
     `).bind(college, name).run();
 
-    // 返回成功
-    return new Response(JSON.stringify({ success: true }), {
+    return new Response(JSON.stringify({ success: true, msg: "预约成功" }), {
+      status: 200,
       headers: {
+        ...corsHeaders,
         "Content-Type": "application/json"
       }
     });
+
   } catch (err) {
-    // 返回错误
+    console.log(err);
     return new Response(JSON.stringify({ success: false, error: err.message }), {
       status: 500,
       headers: {
+        ...corsHeaders,
         "Content-Type": "application/json"
       }
     });
