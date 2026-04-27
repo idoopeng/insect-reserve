@@ -21,7 +21,7 @@ import { ref } from 'vue'
 
 const college = ref('')
 const name = ref('')
-const API_URL = "https://lively-field-cc71.614184764.workers.dev"
+const API_URL = "/api/submit";
 
 const submitReserve = async () => {
   if (!college.value || !name.value) {
